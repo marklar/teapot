@@ -25,7 +25,7 @@ import Geometry.Interop.LinearAlgebra.Point3d as Point3d
 import Html.Events.Extra.Mouse as Mouse
 
 import Constants
-import ModelLoading
+import Mesh
 import Render
 import Types exposing (..)
 import Update
@@ -58,7 +58,7 @@ init flags =
         cmd =
             Http.get
                 { url = "/static/teapot.json"
-                , expect = Http.expectJson GotModel ModelLoading.meshDecoder
+                , expect = Http.expectJson GotModel Mesh.meshDecoder
                 }
     in
     ( model, cmd )

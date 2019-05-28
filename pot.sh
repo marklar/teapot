@@ -42,7 +42,7 @@ function startServer {
     echo ""
     echo -e "$GOOD Web server started (pid: $WEB_SERVER_PID) on port $WEB_SERVER_PORT."
     echo ""
-    displayConfig
+    # displayConfig
 }
 
 function displayConfig {

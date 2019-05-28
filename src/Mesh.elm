@@ -1,4 +1,4 @@
-module ModelLoading exposing (meshDecoder)
+module Mesh exposing (meshDecoder)
 
 import Axis3d      exposing (Axis3d)
 import Frame3d     exposing (Frame3d)
