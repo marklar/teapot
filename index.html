@@ -1,0 +1,22 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Main</title>
+    <!-- Elm program. -->
+    <script src="/js/main.js"></script>
+  </head>
+
+  <body style="height: 100%; overflow: hidden">
+    <div id="elm"></div>
+    <script>
+      var app = Elm.Main.init({
+          node: document.getElementById('elm'),
+          flags: {
+              windowInnerWidth: window.innerWidth,
+              windowInnerHeight: window.innerHeight,
+          }
+      });
+    </script>
+  </body>
+</html>
