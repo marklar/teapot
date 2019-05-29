@@ -1,34 +1,18 @@
 module Main exposing (main)
 
--- general
 import Browser
 import Browser.Events
-import Html
 import Http
 
--- geometry: 2d
-import Point2d    exposing (Point2d)
-
--- geometry: 3d
-import Direction3d   exposing (Direction3d)
-import Frame3d       exposing (Frame3d)
-import Point3d       exposing (Point3d)
-import SketchPlane3d exposing (SketchPlane3d)
-
-import Vector3d as Vector3d exposing (Vector3d)
-
-import Geometry.Interop.LinearAlgebra.Direction3d as Direction3d
-import Geometry.Interop.LinearAlgebra.Frame3d as Frame3d
-import Geometry.Interop.LinearAlgebra.Point3d as Point3d
-
--- interactivity
-import Html.Events.Extra.Mouse as Mouse
+import Axis3d  exposing (Axis3d)
+import Frame3d exposing (Frame3d)
+import Point3d exposing (Point3d)
 
 import Constants
 import Mesh
-import Render
 import Types exposing (..)
-import Update
+import UpdateCamera as Update
+-- import UpdateWorld as Update
 import View
 
 
@@ -46,7 +30,10 @@ init : Flags -> ( Model, Cmd Msg )
 init flags =
     let
         model =
-            { placementFrame = Constants.initialFrame
+            { modelFrame = Frame3d.atOrigin
+            , eyePoint   =
+                Point3d.fromCoordinates ( 0, 0, 15 )
+            -- |> Point3d.rotateAround Axis3d.y (degrees 30)
             , mbMesh = Nothing
             , mbDragPoint = Nothing
             , windowSize =

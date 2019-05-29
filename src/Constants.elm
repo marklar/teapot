@@ -8,30 +8,40 @@ import Frame3d     exposing (Frame3d)
 import Vector3d    exposing (Vector3d)
 
 
--- This 'placementFrame' is used to move the model into 'world space'.
--- It does _not_ project it into 'clip space'.
-initialFrame : Frame3d
-initialFrame =
+-- We rotate and translate the Frame3d, because
+-- the teapot data comes to us oriented very strangely.
+--
+--   x: to right
+--   y: up
+--   z: at us
+--
+-- Spaces:     Object   ->   World   ->   Eye   ->   Clip
+-- Matrices:          model         view     projection
+--
+modelFrame : Frame3d
+modelFrame =
     Frame3d.atOrigin
-
-        -- degrees -30 means:
-        --    + viewer moves to right, OR
-        --    + pot is rotated 'left' (clockwise, if looking from above)
-        |> Frame3d.rotateAround Axis3d.z (degrees -30)
-
-        -- degrees 70 means:
-        --    + viewer moves up to look from above
-        --    + pot is rotated 'down' (top comes toward us)
-        |> Frame3d.rotateAround Axis3d.y (degrees 20)
+        -- Move it down a bit.
+        |> Frame3d.translateBy
+            (Vector3d.fromComponents ( 0, -1, 0 ))
+        -- Turn spout to left.
+        -- |> Frame3d.rotateAround Axis3d.y (degrees -45)
 
 
+-- Used in the fragment shader.
 lightDirection : Direction3d
 lightDirection =
-    -- towards lower left, away from viewer
+    -- Towards lower left, away from viewer
+    --
+    -- The light has a fixed position in the world.
+    -- If the object moves, the light hits different parts of it.
+    -- If the camera moves (as opposed to the object), then the light
+    -- hits the same part of the object while the camera moves
+    -- relative to it.
     Vector3d.fromComponents
-        ( -0.5     -- -0.5: towards left
-        , -1.0     -- -1.0: downward
-        , -0.5     -- -0.5: away from viewer
+        ( -1.0     -- -0.5: leftwards
+        , -1.0     -- -1.0: downwards
+        , -0.5     -- -0.5: away from screen
         )
         |> Vector3d.direction
         |> Maybe.withDefault Direction3d.negativeZ

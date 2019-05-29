@@ -1,9 +1,6 @@
 module Mesh exposing (meshDecoder)
 
-import Axis3d      exposing (Axis3d)
-import Frame3d     exposing (Frame3d)
 import Point3d     exposing (Point3d)
-import Vector3d    exposing (Vector3d)
 import Direction3d exposing (Direction3d)
 
 import Geometry.Interop.LinearAlgebra.Direction3d as Direction3d
@@ -12,42 +9,35 @@ import Geometry.Interop.LinearAlgebra.Point3d as Point3d
 import Json.Decode as Decode exposing (Decoder)
 import WebGL exposing (Mesh)
 
+import Constants
 import Types exposing (..)
 
 
 -- | The triangle data arrives in 'local space'.
--- We define our 'world space' frame of reference, then create
--- our Mesh Attributes in 'world space'.
+-- We define a different 'model space' for orienting it nicely,
+-- then we create our Mesh Attributes in this 'model space'.
 meshDecoder : Decoder (Mesh VertexAttributes)
 meshDecoder =
     Decode.map3
         (\vertexFloats normalFloats faceInts ->
             let
-                -- We rotate and translate the Frame3d. Why?
-                -- (Perhaps our teapot data is oriented strangely?)
-                frame =
-                    Frame3d.atOrigin
-                        |> Frame3d.rotateAround Axis3d.x (degrees 90)
-                        |> Frame3d.translateBy
-                            (Vector3d.fromComponents ( 0, 0, -1 ))
-
-                -- Gather vertices, then create corresponding ones in our new frame.
-                -- The _order_ matters, as 'faces' references them by index in this list.
+                -- Gather vertices, then put them into our frame of reference.
+                -- Order matters, as 'faces' references them by index in this list.
                 vertices : List Point3d
                 vertices =
                     accumulateVertices vertexFloats []
-                        |> List.map (Point3d.placeIn frame)
+                        |> List.map (Point3d.placeIn Constants.modelFrame)
 
-                -- Meaning: the direction that the triangle faces???
-                -- Gather normals, then create corresponding ones in our new frame.
+                -- Meaning: the direction that the triangle faces?
+                -- Gather normals, the put them into our frame of reference.
                 -- Order matters, so as to match up with 'vertices' list.
                 normals : List Direction3d
                 normals =
                     accumulateNormals normalFloats []
-                        |> List.map (Direction3d.placeIn frame)
+                        |> List.map (Direction3d.placeIn Constants.modelFrame)
 
-                -- Are these the indices of vertices?
-                faces : List (Int, Int, Int)
+                -- Indices of vertices, used to define triangles.
+                faces : List Face
                 faces =
                     accumulateFaces faceInts []
 
@@ -69,41 +59,48 @@ meshDecoder =
         (Decode.field "faces"    <| Decode.list Decode.int)
 
 
+---------------------------
+
+-- Each Int is the index of a vertex.
+-- A triple of such vertex indices defines a triangle.
+type alias Face = ( Int, Int, Int )
+
+
 -- | Grab 3 at a time.
 -- Create Point3d from each triple.
 accumulateVertices : List Float -> List Point3d -> List Point3d
-accumulateVertices coordinates accumulated =
+accumulateVertices coordinates acc =
     case coordinates of
         x :: y :: z :: rest ->
             accumulateVertices rest
-                (Point3d.fromCoordinates ( x, y, z ) :: accumulated)
+                (Point3d.fromCoordinates ( x, y, z ) :: acc)
 
         _ ->
-            List.reverse accumulated
+            List.reverse acc
 
 
 -- | Grab 3 at a time.
 -- Create Direction3d from each triple.
 accumulateNormals : List Float -> List Direction3d -> List Direction3d
-accumulateNormals components accumulated =
+accumulateNormals components acc =
     case components of
         x :: y :: z :: rest ->
             accumulateNormals rest
-                (Direction3d.unsafe ( x, y, z ) :: accumulated)
+                (Direction3d.unsafe ( x, y, z ) :: acc)
 
         _ ->
-            List.reverse accumulated
+            List.reverse acc
 
 
 -- | Apparently, we need to discard some of these numbers.
--- Grab 8 at a time, but use only the 2nd, 3rd, and 4th.
--- Each Int is the index of one of the vertices.
+-- Grab 8 at a time, but from those use only the 2nd, 3rd, and 4th.
+-- Each Int is the index of a vertex.
 -- A triple of such vertex indices defines a triangle.
-accumulateFaces : List Int -> List ( Int, Int, Int ) -> List ( Int, Int, Int )
-accumulateFaces indices accumulated =
+accumulateFaces : List Int -> List Face -> List Face
+accumulateFaces indices acc =
     case indices of
-        a :: b :: c :: d :: e :: f :: g :: h :: rest ->
-            accumulateFaces rest (( b, c, d ) :: accumulated)
+        a_ :: b :: c :: d :: e_ :: f_ :: g_ :: h_ :: rest ->
+            accumulateFaces rest (( b, c, d ) :: acc)
 
         _ ->
-            List.reverse accumulated
+            List.reverse acc

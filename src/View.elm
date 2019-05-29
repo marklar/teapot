@@ -36,7 +36,7 @@ view model =
                     ]
 
                 entities =
-                    [ Render.entity mesh model.placementFrame model.windowSize ]
+                    [ Render.entity mesh model.modelFrame model.eyePoint model.windowSize ]
             in
             WebGL.toHtmlWith webGLOptions (htmlAttributes model) entities
 

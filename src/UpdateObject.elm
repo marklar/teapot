@@ -1,4 +1,4 @@
-module Update exposing (update)
+module UpdateObject exposing (update)
 
 -- geometry: 2d (for mouse)
 import Direction2d exposing (Direction2d)
@@ -38,7 +38,7 @@ updateModel message model =
                             Vector2d.from lastPoint newPoint
                     in
                     { model
-                        | placementFrame = rotate model.placementFrame mouseDisplacement
+                        | modelFrame = rotate model.modelFrame mouseDisplacement
                         , mbDragPoint = Just newPoint
                     }
 

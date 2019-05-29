@@ -19,11 +19,11 @@ import Constants
 import Types exposing (..)
 
 
-entity : Mesh VertexAttributes -> Frame3d -> Size -> WebGL.Entity
-entity mesh placementFrame windowSize =
+entity : Mesh VertexAttributes -> Frame3d -> Point3d -> Size -> WebGL.Entity
+entity mesh modelFrame eyePoint windowSize =
     let
-        camera_ =
-            camera windowSize
+        camera =
+            mkCamera eyePoint windowSize
 
         uniforms =
             {
@@ -31,18 +31,20 @@ entity mesh placementFrame windowSize =
 
             -- model:
             --   Move original model into 'world space' (where camera lives).
-            --   Confusingly, this gets modified over time, based on dragging.
-            --   Instead, I'd expect the _camera_ to move, thus changing the viewMatrix.
-              modelMatrix = Frame3d.toMat4 placementFrame
+            --   (Actually, this is the identity matrix, since we're starting
+            --   with the teapot right at the middle of the world.)
+              modelMatrix = Frame3d.toMat4 modelFrame
 
             -- view: transform world according to camera position+orientation.
-            --   Currently, this changes only when the window is resized.
-            , viewMatrix = Camera3d.viewMatrix camera_
+            -- Changes:
+            --     when the window is resized
+            --     upon dragging
+            , viewMatrix = Camera3d.viewMatrix camera
 
             -- projection:
             --   transform from 'world space' to 'clip space'
             --   camera attributes will determine what's seen
-            , projectionMatrix = Camera3d.projectionMatrix camera_
+            , projectionMatrix = Camera3d.projectionMatrix camera
 
 
             -- >> FRAGMENT shader <<
@@ -56,23 +58,21 @@ entity mesh placementFrame windowSize =
 -----------------
 
 -- | Uses 'world space' frame.
--- Currently, this camera doesn't move?
---
--- focalPoint always fixed at origin.
-camera : Size -> Camera3d
-camera { width, height } =
+-- FocalPoint always fixed at origin.
+mkCamera : Point3d -> Size -> Camera3d
+mkCamera eyePoint { width, height } =
     Camera3d.perspective
         { viewpoint =
-            Viewpoint3d.lookAt
-                { eyePoint = Point3d.fromCoordinates ( 15, 0, 0 )
-                , focalPoint = Point3d.origin
-                , upDirection = Direction3d.z
-                }
+              Viewpoint3d.lookAt
+                  { eyePoint = eyePoint
+                  , focalPoint = Point3d.origin
+                  , upDirection = Direction3d.y
+                  }
         , verticalFieldOfView = degrees 30
         , screenWidth  = toFloat width
         , screenHeight = toFloat height
         , nearClipDistance = 0.1
-        , farClipDistance = 100
+        , farClipDistance  = 100
         }
 
 

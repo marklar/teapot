@@ -8,8 +8,9 @@ import Math.Vector3 exposing (Vec3)
 import WebGL exposing (Mesh)
 
 -- geometry
-import Point2d as Point2d exposing (Point2d)
-import Frame3d as Frame3d exposing (Frame3d)
+import Point2d exposing (Point2d)
+import Point3d exposing (Point3d)
+import Frame3d exposing (Frame3d)
 
 
 type Msg
@@ -26,15 +27,16 @@ type alias Flags =
     }
 
 type alias Model =
-    { placementFrame : Frame3d
-    -- ^ Rather than move the camera, we modify 'world space'.
-    , mbDragPoint    : Maybe Point2d
-    -- ^ Used to modify the placementFrame.
-
-    , mbMesh         : Maybe (Mesh VertexAttributes)
+    { modelFrame  : Frame3d
+    -- ^ Puts the mesh into 'world space'.
+    , eyePoint    : Point3d
+    -- ^ Where the camera is (in 'world space').
+    , mbMesh      : Maybe (Mesh VertexAttributes)
     -- ^ Our triangles.
-    , windowSize     : Size
+    , windowSize  : Size
     -- ^ Used to modify our camera (and thus our view matrix).
+    , mbDragPoint : Maybe Point2d
+    -- ^ Used to modify the camera.
     }
 
 type alias Size =
