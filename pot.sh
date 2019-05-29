@@ -10,7 +10,7 @@
 # like ack (or grep)
 # https://github.com/ggreer/the_silver_searcher
 
-trap killServer EXIT
+trap killServer SIGINT SIGTERM EXIT
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -65,7 +65,9 @@ function killServer {
     clear
     echo ""
     echo -e "$GOOD Web server shut down."
-    popd
+    echo ""
+    popd >& /dev/null
+    exit
 }
 
 function build {
@@ -76,7 +78,7 @@ function build {
         clear
         $exec
         while true; do
-            sleep 60
+            sleep 3
         done
     else
         while true; do
